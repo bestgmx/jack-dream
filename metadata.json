@@ -1,0 +1,6 @@
+{
+  "name": "Jack dream",
+  "description": "A React application demonstrating a login/logout flow with support for English, Persian (Farsi), and Chinese languages. It simulates user authentication for two predefined users.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
