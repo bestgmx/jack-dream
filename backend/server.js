@@ -33,12 +33,13 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // Routes
 app.get('/', (req, res) => {
-  console.log('Root endpoint accessed');
+  console.log('Root endpoint accessed - Updated');
   res.json({ 
-    message: 'Jack Dream Backend API', 
+    message: 'Jack Dream Backend API - Updated', 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    endpoints: ['/api/items', '/health']
+    endpoints: ['/api/items', '/health'],
+    version: '1.0.1'
   });
 });
 
