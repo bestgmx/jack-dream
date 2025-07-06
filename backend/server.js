@@ -1,23 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 4000;
 
-// CORS configuration
-app.use(cors({
-  origin: ['https://jack-dream.parspack.com', 'http://localhost:3000', 'http://localhost:5173'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+// Basic CORS
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// اتصال به دیتابیس (یا ساخت آن)
+// Database connection
 const dbPath = process.env.NODE_ENV === 'production' ? '/tmp/data.db' : './data.db';
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
@@ -25,7 +17,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
   } else {
     console.log('Connected to SQLite database at:', dbPath);
     
-    // ساخت جدول نمونه (در صورت نبود)
+    // Create table
     db.run(`CREATE TABLE IF NOT EXISTS items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL
@@ -39,7 +31,22 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// API: دریافت همه آیتم‌ها
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Jack Dream Backend API', 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    endpoints: ['/api/items', '/health']
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// API: Get all items
 app.get('/api/items', (req, res) => {
   db.all('SELECT * FROM items', [], (err, rows) => {
     if (err) {
@@ -54,7 +61,7 @@ app.get('/api/items', (req, res) => {
   });
 });
 
-// API: افزودن آیتم جدید
+// API: Add new item
 app.post('/api/items', (req, res) => {
   const { name } = req.body;
   
@@ -77,35 +84,20 @@ app.post('/api/items', (req, res) => {
   });
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Jack Dream Backend API', 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    endpoints: ['/api/items', '/health']
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Endpoint not found',
+    availableEndpoints: ['/', '/api/items', '/health']
   });
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-// Error handling middleware
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
   res.status(500).json({ 
     error: 'Something went wrong!',
     message: err.message 
-  });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ 
-    error: 'Endpoint not found',
-    availableEndpoints: ['/', '/api/items', '/health']
   });
 });
 
