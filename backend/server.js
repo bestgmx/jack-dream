@@ -33,21 +33,12 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // Routes
 app.get('/', (req, res) => {
-  console.log('Root endpoint accessed - Updated');
+  console.log('Root endpoint accessed');
   res.json({ 
-    message: 'Jack Dream Backend API - Updated', 
+    message: 'Jack Dream Backend API', 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    endpoints: ['/api/items', '/health'],
-    version: '1.0.1'
-  });
-});
-
-app.get('/test', (req, res) => {
-  console.log('Test endpoint accessed');
-  res.json({ 
-    message: 'Test endpoint working!', 
-    timestamp: new Date().toISOString() 
+    endpoints: ['/api/items', '/health']
   });
 });
 
@@ -114,7 +105,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const server = app.listen(port, () => {
+app.listen(port, () => {
   console.log(`Backend listening at http://localhost:${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Database path: ${dbPath}`);
@@ -123,30 +114,24 @@ const server = app.listen(port, () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    console.log('Process terminated');
-    db.close((err) => {
-      if (err) {
-        console.error('Error closing database:', err.message);
-      } else {
-        console.log('Database connection closed');
-      }
-      process.exit(0);
-    });
+  db.close((err) => {
+    if (err) {
+      console.error('Error closing database:', err.message);
+    } else {
+      console.log('Database connection closed');
+    }
+    process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    console.log('Process terminated');
-    db.close((err) => {
-      if (err) {
-        console.error('Error closing database:', err.message);
-      } else {
-        console.log('Database connection closed');
-      }
-      process.exit(0);
-    });
+  db.close((err) => {
+    if (err) {
+      console.error('Error closing database:', err.message);
+    } else {
+      console.log('Database connection closed');
+    }
+    process.exit(0);
   });
 });
