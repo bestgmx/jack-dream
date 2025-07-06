@@ -9,6 +9,12 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
 // Database connection
 const dbPath = process.env.NODE_ENV === 'production' ? '/tmp/data.db' : './data.db';
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -33,6 +39,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // Root endpoint
 app.get('/', (req, res) => {
+  console.log('Root endpoint accessed');
   res.json({ 
     message: 'Jack Dream Backend API', 
     status: 'OK', 
@@ -43,11 +50,13 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  console.log('Health endpoint accessed');
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // API: Get all items
 app.get('/api/items', (req, res) => {
+  console.log('API items endpoint accessed');
   db.all('SELECT * FROM items', [], (err, rows) => {
     if (err) {
       console.error('Database query error:', err.message);
@@ -84,11 +93,12 @@ app.post('/api/items', (req, res) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
+// 404 handler - must be after all specific routes
+app.use('*', (req, res) => {
   res.status(404).json({ 
     error: 'Endpoint not found',
-    availableEndpoints: ['/', '/api/items', '/health']
+    availableEndpoints: ['/', '/api/items', '/health'],
+    requestedPath: req.originalUrl
   });
 });
 
