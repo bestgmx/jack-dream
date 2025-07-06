@@ -43,6 +43,14 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/test', (req, res) => {
+  console.log('Test endpoint accessed');
+  res.json({ 
+    message: 'Test endpoint working!', 
+    timestamp: new Date().toISOString() 
+  });
+});
+
 app.get('/health', (req, res) => {
   console.log('Health endpoint accessed');
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
