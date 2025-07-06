@@ -5,15 +5,9 @@ const sqlite3 = require('sqlite3').verbose();
 const app = express();
 const port = process.env.PORT || 4000;
 
-// Basic CORS
+// Middleware
 app.use(cors());
 app.use(express.json());
-
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  next();
-});
 
 // Database connection
 const dbPath = process.env.NODE_ENV === 'production' ? '/tmp/data.db' : './data.db';
@@ -37,7 +31,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// Root endpoint
+// Routes
 app.get('/', (req, res) => {
   console.log('Root endpoint accessed');
   res.json({ 
@@ -48,13 +42,11 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   console.log('Health endpoint accessed');
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// API: Get all items
 app.get('/api/items', (req, res) => {
   console.log('API items endpoint accessed');
   db.all('SELECT * FROM items', [], (err, rows) => {
@@ -70,8 +62,8 @@ app.get('/api/items', (req, res) => {
   });
 });
 
-// API: Add new item
 app.post('/api/items', (req, res) => {
+  console.log('API items POST endpoint accessed');
   const { name } = req.body;
   
   if (!name || name.trim() === '') {
@@ -93,12 +85,13 @@ app.post('/api/items', (req, res) => {
   });
 });
 
-// 404 handler - must be after all specific routes
-app.use('*', (req, res) => {
+// 404 handler
+app.use((req, res) => {
+  console.log('404 - Endpoint not found:', req.url);
   res.status(404).json({ 
     error: 'Endpoint not found',
     availableEndpoints: ['/', '/api/items', '/health'],
-    requestedPath: req.originalUrl
+    requestedPath: req.url
   });
 });
 
@@ -111,6 +104,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Start server
 const server = app.listen(port, () => {
   console.log(`Backend listening at http://localhost:${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
